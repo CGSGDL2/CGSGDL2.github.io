@@ -1,0 +1,137 @@
+.header {
+    font-family:Georgia;
+    color:#4f7680;    
+}
+
+.footer {
+    font-family:Georgia;
+    color:#4f7680;
+    transform: translateY(30px);
+  }
+
+.body{
+    background-color:#d9e7f2;
+  }
+
+.round-button{
+    display: table-cell;
+    font-size: 16px;
+    width: 33px;
+    height: 30px;
+    font-weight: 500;
+    vertical-align: middle;
+    color: #70757a;
+    background-color: #d9e7f2;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    position: relative;
+    border-radius: 50%;
+    transform: translateY(25px);
+}
+
+.round-button:hover {
+    background-color: #c6dbeb;
+  }
+
+.months-button{
+    display: table-cell;    
+    font-size: 18px;
+    width: 25px;
+    height: 25px;
+    font-weight: 500;
+    vertical-align: middle;
+    color: #70757a;
+    background-color: #a7c0d2;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    position: relative;
+    border-radius: 50%;
+    transform: translateY(52px) translateX(255px);
+}
+
+.months-button:hover {
+    background-color: #86aac4;
+  }
+
+.special-round-button{
+    display: table-cell;
+    font-size: 16px;
+    width: 33px;
+    height: 30px;
+    font-weight: 500;
+    vertical-align: middle;
+    color: #70757a;
+    background-color: #a7c0d2;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    position: relative;
+    border-radius: 50%;
+    transform: translateY(25px);
+}
+
+.special-round-button:hover {
+    background-color: #86aac4;
+  }
+
+.free-round-button{
+    display: table-cell;
+    font-size: 16px;
+    width: 33px;
+    height: 30px;
+    font-weight: 500;
+    vertical-align: middle;
+    color: #70757a;
+    background-color: #d9e7f2;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    position: relative;
+    border-radius: 50%;
+    transform: translateY(25px);   
+}
+
+.weekdays{
+    display: table-cell;
+    font-size: 16px;
+    width: 33px;
+    height: 30px;
+    font-weight: 500;
+    vertical-align: middle;
+    color: #70757a;
+    background-color: #d9e7f2;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    position: relative;
+    border-radius: 50%;
+    transform: translateY(15px);
+}
+
+.text{
+    font-size: 20px;
+    font-weight: 500;
+    color: #70757a;
+    transform: translateY(28px);
+}
+
+.label{
+    font-size: 16px;
+    font-weight: 100;
+    color: #70757a;
+    background-color: #a7c0d2;
+    outline: none;
+    border: none;
+    border-radius: 4px; 
+    transform: translateY(5px) translateX(37px);
+    width: 100px;
+}
+
+.selecter{
+    transform: translateY(-15px) translateX(152px);
+    font-size: 16px;
+    font-weight: 500;
+    color: #70757a;
+}

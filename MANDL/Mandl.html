@@ -1,0 +1,231 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="Mandl.css">
+    <title>Mandl</title>
+    <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+    <script type="text/javascript">
+        var gl;
+        let iteration_number;
+        let translate_x;
+        let translate_y;
+        let scale;
+
+        function initGL(canvas) {
+            try {
+                gl = canvas.getContext("experimental-webgl");
+                gl.viewportWidth = canvas.width;
+                gl.viewportHeight = canvas.height;
+            } catch (e) {
+            }
+            if (!gl) {
+                alert("Could not initialise WebGL");
+            }
+        }
+        var shaderProgram;
+
+        async function initShaders() {
+            shaderNames = ["shader-vs", "shader-fs"];
+            let fragShader, vertShader;
+
+
+            let results = await Promise.all([
+                fetch('shader-vs.txt')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Response status is: ${response.status}`);
+                        }
+                        return response.text();
+                    })
+                    .then(text => {
+                        vertShader = gl.createShader(gl.VERTEX_SHADER);
+                        gl.shaderSource(vertShader, text);
+                        gl.compileShader(vertShader);
+
+                        if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
+                            alert(gl.getShaderInfoLog(vertShader));
+                            return null;
+                        }
+                    }),
+                fetch('shader-fs.txt')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Response status is: ${response.status}`);
+                        }
+                        return response.text();
+                    })
+                    .then(text => {
+                        fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+                        gl.shaderSource(fragShader, text);
+                        gl.compileShader(fragShader);
+
+                        if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
+                            alert(gl.getShaderInfoLog(fragShader));
+                            return null;
+                        }
+                    })
+            ]);
+            Promise.resolve().then(() => {
+                shaderProgram = gl.createProgram();
+                gl.attachShader(shaderProgram, vertShader);
+                gl.attachShader(shaderProgram, fragShader);
+                gl.linkProgram(shaderProgram);
+
+                if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                    alert("Could not initialise shaders");
+                }
+
+                gl.useProgram(shaderProgram);
+
+                shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+                gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+                shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+                shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+                shaderProgram.iteration_number_uniform = gl.getUniformLocation(shaderProgram, "iteration_number");
+                shaderProgram.translate_x_uniform = gl.getUniformLocation(shaderProgram, "translate_x");
+                shaderProgram.translate_y_uniform = gl.getUniformLocation(shaderProgram, "translate_y");
+                shaderProgram.scale_uniform = gl.getUniformLocation(shaderProgram, "scale");
+            });
+            return Promise.resolve();
+        }
+
+        var mvMatrix = mat4.create();
+        var pMatrix = mat4.create();
+
+        function setMatrixUniforms() {
+            gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+            gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+            gl.uniform1f(shaderProgram.iteration_number_uniform, iteration_number);
+            gl.uniform1f(shaderProgram.translate_x_uniform, translate_x);
+            gl.uniform1f(shaderProgram.translate_y_uniform, translate_y);
+            gl.uniform1f(shaderProgram.scale_uniform, scale);
+        }
+
+        var squareVertexPositionBuffer;
+
+        function initBuffers() {
+            squareVertexPositionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+            vertices = [
+                1.0, 1.0, 0.0,
+                -1.0, 1.0, 0.0,
+                1.0, -1.0, 0.0,
+                -1.0, -1.0, 0.0
+            ];
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+            squareVertexPositionBuffer.itemSize = 3;
+            squareVertexPositionBuffer.numItems = 4;
+        }
+
+
+        function drawScene() {
+            gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+
+            mat4.identity(mvMatrix);
+
+            mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
+
+            mat4.translate(mvMatrix, [3.0, 0.0, 0.0]);
+            gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            setMatrixUniforms();
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+        }
+
+        function tick() {
+            window.requestAnimationFrame(tick);
+            drawScene();
+        }
+
+
+        function webGLStart() {
+            iteration_number = 100;
+            translate_x = 10;
+            translate_y = 10;
+            scale = 1;
+            document.getElementById('input_iteration_number').value = iteration_number;
+
+            //var xmlhttp = new XMLHttpRequest();
+            //xmlhttp.open('GET', '/0/data.txt', false);
+            //xmlhttp.send(null);
+            //if (xmlhttp.status == 200) {
+            //    alert(xmlhttp.responseText);
+            //}
+
+
+            var canvas = document.getElementById("wgl-canvas");
+            initGL(canvas);
+            initShaders().then(() => {
+                initBuffers();
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.enable(gl.DEPTH_TEST);
+
+                drawScene();
+                tick();
+            });
+        }
+
+        function update_iteration_number() {
+            data = document.getElementById('input_iteration_number').value;
+            iteration_number = parseInt(data);
+            if (isNaN(iteration_number) || iteration_number <= 0) {
+                document.getElementById('input_iteration_number').style = "background-color: #f2bbbb";
+                iteration_number = 100;
+            }
+            else
+                document.getElementById('input_iteration_number').style = "background-color: white";
+            //alert(data);
+        }
+    </script>
+
+
+</head>
+
+<body onload="webGLStart();" class="body">
+    <header class="header-footer">
+        <h1>Summer practice 2021 👩‍💻: Mandelbrot</h1>
+    </header>
+    <canvas id="wgl-canvas" style="border: none;" width="900" height="900" onmousedown="mouseDown(event)"
+        onmouseup="mouseUp(event)" onmousemove="mouseTrans(event)" onmousewheel="mouseWheel(event)" ,></canvas>
+
+    <br />
+    <label for="input_iteration_number" style="background-color: white"> iteration_number</label> <input type="text"
+        id="input_iteration_number" onkeyup="update_iteration_number()"><br>
+    <script>
+        let trans_flag = 0;
+        let prev_x = 0;
+        let prev_y = 0;
+        let scale_coeff = 1.2;
+
+        function mouseDown(e) {
+            prev_x = e.clientX;
+            prev_y = e.clientY;
+            trans_flag = 1;
+        }
+        function mouseUp(e) {
+            trans_flag = 0;
+        }
+        function mouseTrans(e) {
+            if (trans_flag == 1) {
+                translate_x += e.clientX - prev_x;
+                translate_y += e.clientY - prev_y;
+                prev_x = e.clientX;
+                prev_y = e.clientY;
+            }
+        }
+        function mouseWheel(e) {
+            if (e.deltaY > 0)
+                scale /= scale_coeff;
+            else
+                scale *= scale_coeff;
+        }
+    </script>
+
+</body>
+
+</html>
